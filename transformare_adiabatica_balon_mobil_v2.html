@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transformare Adiabatică</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0077cc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: sans-serif;
+    }
+    h1 {
+      color: white;
+      margin: 20px;
+      text-align: center;
+      width: 100%;
+    }
+    canvas {
+      background: #d0f0ff;
+      border: 2px solid #333;
+      max-width: 100%;
+      height: auto;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #ffa500;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Transformarea Adiabatică a unui Balon cu Heliu</h1>
+  <div style="overflow-x: auto; width: 100%; display: flex; justify-content: center;">
+    <canvas id="canvas" width="500" height="600"></canvas>
+  </div>
+  <button onclick="direction *= -1">Schimbă direcția (sus/jos)</button>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let t = 0;
+    let direction = 1;
+
+    const balloon = {
+      x: 250,
+      y: 500,
+      baseRadius: 60,
+      vy: -1,
+      minY: 100,
+      maxY: 500
+    };
+
+    const particles = Array.from({ length: 10 }, () => ({
+      angle: Math.random() * 2 * Math.PI,
+      distance: Math.random() * 10 + 10
+    }));
+
+    function getGradientColor(heightFactor) {
+      const r = Math.round(255 * (1 - heightFactor));
+      const g = Math.round(120 * (1 - heightFactor));
+      const b = Math.round(255 * heightFactor + 100);
+      return `rgb(${r},${g},${b})`;
+    }
+
+    function drawBalloonWithParticles() {
+      const altStep = (balloon.maxY - balloon.minY) / 5;
+      const tempStart = 20;
+      const tempStep = -6.5;
+      const heightFactor = 1 - (balloon.y - balloon.minY) / (balloon.maxY - balloon.minY);
+      const radiusX = balloon.baseRadius * (0.8 + heightFactor * 0.6);
+      const radiusY = radiusX * (0.8 + heightFactor * 0.4);
+      const color = getGradientColor(heightFactor);
+
+      ctx.beginPath();
+      ctx.ellipse(balloon.x, balloon.y, radiusX, radiusY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = '#444';
+      ctx.stroke();
+
+      particles.forEach(p => {
+        const dFactor = 1 + heightFactor * 2;
+        let dx = Math.cos(p.angle) * p.distance * dFactor * (0.5 + heightFactor * 0.4);
+        let dy = Math.sin(p.angle) * p.distance * dFactor * (1.0 + heightFactor * 0.6);
+
+        const dist = Math.sqrt((dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY));
+        if (dist > 1) {
+          dx *= 0.95 / dist;
+          dy *= 0.95 / dist;
+        }
+
+        ctx.beginPath();
+        ctx.arc(balloon.x + dx, balloon.y + dy, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffcc';
+        ctx.fill();
+      });
+
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(70, 20);
+      ctx.lineTo(70, 580);
+      ctx.stroke();
+
+      ctx.fillStyle = 'blue';
+      for (let i = 0; i <= 5; i++) {
+        const y = 580 - i * altStep;
+        ctx.fillText(i + ' km', 40, y + 5);
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(370, 20);
+      ctx.lineTo(370, 580);
+      ctx.strokeStyle = 'white';
+      ctx.stroke();
+      ctx.fillStyle = 'blue';
+      for (let i = 0; i <= 5; i++) {
+        const y = 580 - i * altStep;
+        const temp = tempStart + tempStep * i;
+        ctx.fillText(temp + ' °C', 390, y + 5);
+      }
+
+      ctx.font = '16px sans-serif';
+      ctx.fillText('Altitudine ↑', 80, 40);
+      ctx.fillText('Compression', 320, 590);
+      ctx.fillText('Expansion', 60, 120);
+      ctx.fillStyle = 'blue';
+      ctx.fillText('Cools ↑', 220, 80);
+      ctx.fillStyle = 'orange';
+      ctx.fillText('Warms ↓', 220, 560);
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      balloon.y += balloon.vy * direction;
+      if (balloon.y <= balloon.minY || balloon.y >= balloon.maxY) {
+        direction *= -1;
+      }
+
+      drawBalloonWithParticles();
+      t++;
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

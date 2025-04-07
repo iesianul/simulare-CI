@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Principiul I al Termodinamicii</title>
+  <style>
+    body {
+      margin: 0;
+      background: #e0f7fa;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-top: 20px;
+      color: #00796b;
+      text-align: center;
+    }
+    canvas {
+      background: #ffffff;
+      border: 2px solid #00796b;
+      max-width: 100%;
+      margin: 20px 0;
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+    .controls button {
+      margin: 5px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background: #00796b;
+      color: white;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background: #004d40;
+    }
+  </style>
+</head>
+<body>
+  <h1>Principiul I al Termodinamicii în Construcții Civile</h1>
+  <div class="controls">
+    <button onclick="setScenario(4)">Izobară (P = const, ΔQ > 0)</button>
+    <button onclick="setScenario(1)">Încălzire (ΔQ > 0, W = 0)</button>
+    <button onclick="setScenario(2)">Compresie (ΔQ = 0, W < 0)</button>
+    <button onclick="setScenario(3)">Încălzire + Compresie (ΔQ > 0, W < 0)</button>
+  </div>
+  <canvas id="canvas" width="600" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let scenario = 1;
+    let molecules = [];
+    let pistonY = scenario === 4 ? 160 : 100;
+    let time = 0;
+
+    function initMolecules(energie = 1) {
+      molecules = Array.from({ length: 20 }).map(() => ({
+        x: 200 + Math.random() * 200,
+        y: 150 + Math.random() * 100,
+        vx: (Math.random() - 0.5) * energie,
+        vy: (Math.random() - 0.5) * energie
+      }));
+    }
+
+    function drawChamber() {
+      ctx.fillStyle = "#ddd";
+      ctx.fillRect(150, 100, 300, 200);
+      ctx.fillStyle = "#b71c1c";
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(160 + i * 10, 270, 6, 20);
+      }
+      ctx.fillStyle = "#000";
+      ctx.font = "14px sans-serif";
+    }
+
+    function drawPiston() {
+      ctx.fillStyle = "#888";
+      ctx.fillRect(150, pistonY, 300, 10);
+      ctx.strokeStyle = "#444";
+      ctx.strokeRect(150, pistonY + 10, 300, 200 - (pistonY - 100));
+      ctx.fillStyle = "#000";
+      ctx.font = "14px sans-serif";
+      ctx.fillText(scenario === 2 || scenario === 3 ? "Pistonul comprimă gazul (W < 0)" : "Piston împins de gaz (W > 0)", 160, pistonY - 10);
+      if (scenario === 3) {
+        ctx.fillText("Încălzire simultană (Q > 0)", 160, pistonY - 25);
+      } else if (scenario === 4) {
+        ctx.fillText("Încălzire izobară (Q > 0, P = const)", 160, pistonY - 25);
+      }
+    }
+
+    function drawMolecules(intensity = 1) {
+      molecules.forEach(mol => {
+        mol.x += mol.vx * intensity;
+        mol.y += mol.vy * intensity;
+        if (mol.x < 155) { mol.x = 155; mol.vx *= -1; }
+        else if (mol.x > 445) { mol.x = 445; mol.vx *= -1; }
+        if (mol.y < pistonY + 15) { mol.y = pistonY + 15; mol.vy *= -1; }
+        else if (mol.y > 295) { mol.y = 295; mol.vy *= -1; }
+        ctx.beginPath();
+        ctx.arc(mol.x, mol.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${Math.min(255, 100 + intensity * 100)},0,0,0.8)`;
+        ctx.fill();
+      });
+    }
+
+    function drawHeatArrow() {
+      ctx.beginPath();
+      ctx.moveTo(130, 180);
+      ctx.lineTo(150, 180);
+      ctx.lineTo(145, 175);
+      ctx.moveTo(150, 180);
+      ctx.lineTo(145, 185);
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = "red";
+      ctx.fillText("Q = 200 J (≈ 47.8 kcal)", 10, 170);
+    }
+
+    function drawEquation(Q, W) {
+      const deltaU = Q - W;
+      const kcal = (deltaU / 4184).toFixed(2);
+      ctx.fillStyle = "#000";
+      ctx.font = "16px sans-serif";
+      ctx.fillText(`ΔU = Q - W`, 400, 50);
+      ctx.fillText(`ΔU = ${Q} J - (${W}) J = ${deltaU} J`, 400, 70);
+      ctx.fillText(`≈ ${kcal} kcal (1 kcal = 4184 J)`, 400, 90);
+      if (deltaU < 0) {
+        ctx.fillStyle = "blue";
+        ctx.font = "bold 16px sans-serif";
+        ctx.fillText("Energie internă în scădere (ΔU < 0)", 20, 370);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#000';
+      ctx.font = '14px sans-serif';
+      ctx.fillText('ΔU = Q - W', 20, 20);
+      ctx.fillText('Transformare: ' + getTransformationType(scenario), 20, 40);
+      if (scenario === 1) {
+        drawChamber();
+        drawHeatArrow();
+        let vFactor = 1 + Math.min(1.5, time * 0.01);
+        drawMolecules(vFactor);
+        drawEquation(200, 0);
+      } else if (scenario === 2) {
+        drawPiston();
+        drawMolecules(2.5); // viteza mare din cauza compresiei
+        if (pistonY < 160) pistonY += 0.2;
+        drawEquation(0, -100);
+      } else if (scenario === 3) {
+        drawPiston();
+        ctx.beginPath();
+        ctx.moveTo(130, 180);
+        ctx.lineTo(150, 180);
+        ctx.lineTo(145, 175);
+        ctx.moveTo(150, 180);
+        ctx.lineTo(145, 185);
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = "red";
+        ctx.fillText("Q = 200 J (≈ 47.8 kcal)", 10, 170);
+        let vFactor = Math.min(3, 2 + time * 0.01);
+        drawMolecules(vFactor);
+        if (pistonY < 160) pistonY += 0.2;
+        drawEquation(200, 100);
+      } else if (scenario === 4) {
+        drawPiston();
+        drawHeatArrow();
+        drawMolecules(2.3);
+        if (pistonY > 40) pistonY -= 0.08;
+        drawEquation(200, 50);
+      }
+      time++;
+      ctx.fillStyle = '#444';
+      ctx.font = '12px sans-serif';
+      if (scenario === 1) ctx.fillText('Energia internă crește prin absorbția căldurii.', 320, 390);
+      if (scenario === 2) ctx.fillText('Energia internă crește prin lucru mecanic asupra gazului.', 270, 390);
+      if (scenario === 3) ctx.fillText('Energia internă crește din Q și W. Gazul se încălzește puternic.', 250, 390);
+      if (scenario === 4) ctx.fillText('Energia internă crește. Gazul se dilată la presiune constantă.', 270, 390);
+      requestAnimationFrame(draw);
+    }
+
+    function setScenario(s) {
+      scenario = s;
+      pistonY = 100;
+      if (s === 1) initMolecules(1.2);
+      else if (s === 2) initMolecules(2.0);
+      else if (s === 3) initMolecules(2.5);
+      else if (s === 4) initMolecules(2.3);
+    }
+
+    function getTransformationType(scenario) {
+      switch (scenario) {
+        case 1: return 'Izocoră (V=const)';
+        case 2: return 'Adiabatică (ΔQ = 0)';
+        case 3: return 'Generală';
+        case 4: return 'Izobară (P=const)';
+        default: return '';
+      }
+    }
+
+    initMolecules();
+    draw();
+  </script>
+</body>
+</html>

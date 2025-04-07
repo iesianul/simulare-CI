@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transfer de Căldură</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-top: 1em;
+      text-align: center;
+    }
+    canvas {
+      background: white;
+      border: 2px solid #ccc;
+      margin: 1em 0;
+      max-width: 90vw;
+    }
+    img {
+      max-width: 90vw;
+      border: 2px solid #ccc;
+      margin-bottom: 1em;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1em;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Transfer de Căldură</h1>
+  <img src="transfer_calor_img.png" alt="Moduri de transfer termic">
+  <div class="controls">
+    <button onclick="mode='conductie'">Conducție</button>
+    <button onclick="mode='convectie'">Convecție</button>
+    <button onclick="mode='radiatie'">Radiație</button>
+  </div>
+  <canvas id="canvas" width="600" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let mode = 'conductie';
+    let t = 0;
+
+    const molecules = Array.from({ length: 30 }, () => ({
+      x: 300 + Math.random() * 200,
+      y: 100 + Math.random() * 200,
+      vx: 0,
+      vy: 0
+    }));
+
+    function drawBrickWall(x, y, cols, rows, brickW, brickH) {
+      ctx.fillStyle = '#cc5733';
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          let offset = (i % 2) * (brickW / 2);
+          ctx.fillRect(x + j * brickW - offset, y + i * brickH, brickW - 2, brickH - 2);
+        }
+      }
+    }
+
+    function drawRadiator(x, y) {
+      ctx.strokeStyle = "gray";
+      ctx.lineWidth = 6;
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x + i * 20, y);
+        ctx.lineTo(x + i * 20, y + 60);
+        ctx.stroke();
+      }
+    }
+
+    function drawSun(x, y) {
+      ctx.fillStyle = "#FFD700";
+      ctx.beginPath();
+      ctx.arc(x, y, 30, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawRadiativeRaysAndMolecules() {
+      const originX = 100;
+      const originY = 50;
+      drawSun(originX, originY);
+
+      const numRays = 20;
+      const angleSpread = Math.PI / 5;
+
+      for (let i = 0; i < numRays; i++) {
+        const angle = Math.PI / 4 - angleSpread / 2 + (i / numRays) * angleSpread;
+        const length = 500;
+        const offset = Math.sin(t / 20 + i) * 5;
+
+        const endX = originX + (length + offset) * Math.cos(angle);
+        const endY = originY + (length + offset) * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.moveTo(originX, originY);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = "orange";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      molecules.forEach(mol => {
+        const dx = mol.x - originX;
+        const dy = mol.y - originY;
+        const angle = Math.atan2(dy, dx);
+        const minAngle = Math.PI / 4 - angleSpread / 2;
+        const maxAngle = Math.PI / 4 + angleSpread / 2;
+
+        if (angle > minAngle && angle < maxAngle) {
+          mol.vx += (Math.random() - 0.5) * 0.8;
+          mol.vy += (Math.random() - 0.5) * 0.8;
+        }
+
+        mol.x += mol.vx;
+        mol.y += mol.vy;
+
+        ctx.beginPath();
+        ctx.arc(mol.x, mol.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = "#0077cc";
+        ctx.fill();
+      });
+    }
+
+    function drawConvectionCircles() {
+      const arrows = [
+        { x: 180, y: 200, radius: 40 },
+        { x: 260, y: 200, radius: 40 },
+        { x: 220, y: 270, radius: 40 },
+      ];
+      ctx.strokeStyle = "#FF4500";
+      ctx.lineWidth = 3;
+      arrows.forEach((arrow, i) => {
+        let angle = (t / 60 + i * Math.PI / 2) % (2 * Math.PI);
+        ctx.beginPath();
+        ctx.arc(arrow.x, arrow.y, arrow.radius, angle, angle + Math.PI * 1.5);
+        ctx.stroke();
+
+        const tipX = arrow.x + arrow.radius * Math.cos(angle + Math.PI * 1.5);
+        const tipY = arrow.y + arrow.radius * Math.sin(angle + Math.PI * 1.5);
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(tipX - 5, tipY - 5);
+        ctx.lineTo(tipX + 5, tipY - 5);
+        ctx.closePath();
+        ctx.fillStyle = "#FF4500";
+        ctx.fill();
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (mode === 'conductie') {
+        drawBrickWall(50, 150, 6, 3, 50, 30);
+        let pulse = 100 + 100 * Math.abs(Math.sin(t / 50));
+        ctx.fillStyle = "rgba(255, 100, 0, 0.6)";
+        ctx.fillRect(50 + 10, 160, pulse, 70);
+      } else if (mode === 'convectie') {
+        ctx.fillStyle = "#f0f0f0";
+        ctx.fillRect(50, 100, 500, 250);
+        drawRadiator(350, 250);
+        drawConvectionCircles();
+      } else if (mode === 'radiatie') {
+        ctx.fillStyle = "#fefae0";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawRadiativeRaysAndMolecules();
+      }
+
+      t++;
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

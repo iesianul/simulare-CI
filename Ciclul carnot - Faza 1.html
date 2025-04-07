@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>Izotermă Caldă - Simulare</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    canvas {
+      background: white;
+      border: 1px solid black;
+    }
+    #info {
+      margin-top: 20px;
+      font-size: 1.1em;
+      white-space: pre-line;
+    }
+    #reset {
+      margin: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h2>Simulare: Izotermă Caldă</h2>
+  <div class="container">
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <canvas id="graphPV" width="300" height="400"></canvas>
+  </div>
+  <div id="info"></div>
+  <button id="reset">Resetează Simularea</button>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const graphPV = document.getElementById('graphPV').getContext('2d');
+
+    const Vmin = 100, Vmax = 400;
+    const T = 400;
+    const R = 8.314, nu = 1;
+
+    let V;
+    let pointsPV = [];
+    let anim;
+
+    function culoareTemperatură() {
+      return `rgb(255,0,0)`;
+    }
+
+    function desenareSăgețiCăldurăJos() {
+      for (let i = 0; i < 3; i++) {
+        const x = 80 + i * 100;
+        const y1 = 370;
+        const y2 = 340;
+        ctx.beginPath();
+        ctx.moveTo(x, y1);
+        ctx.lineTo(x, y2);
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x - 5, y2 + 5);
+        ctx.lineTo(x, y2);
+        ctx.lineTo(x + 5, y2 + 5);
+        ctx.fillStyle = "red";
+        ctx.fill();
+      }
+    }
+
+    function desenarePiston(V) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cilindruY = 80;
+      const cilindruH = 240;
+      const cilindruBottom = cilindruY + cilindruH;
+      const pistonY = cilindruBottom - Math.max(0, Math.min(1, (V - Vmin) / (Vmax - Vmin))) * cilindruH;
+
+      ctx.strokeStyle = "#444";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(50, cilindruY, 300, cilindruH);
+
+      ctx.fillStyle = "#888";
+      ctx.fillRect(50, pistonY, 300, 12);
+      ctx.strokeStyle = "#555";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(50, pistonY, 300, 12);
+
+      ctx.fillStyle = "#333";
+      ctx.fillRect(190, 30, 20, pistonY - 30);
+
+      desenareSăgețiCăldurăJos();
+
+      ctx.fillStyle = culoareTemperatură();
+      const gazHeight = cilindruBottom - (pistonY + 12);
+      for (let i = 0; i < 25; i++) {
+        let x = 60 + Math.random() * 280;
+        let y = pistonY + 12 + Math.random() * Math.max(10, gazHeight);
+        if (y > cilindruBottom) y = cilindruBottom - 5;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      document.getElementById('info').innerText = `Izotermă caldă\nV = ${V.toFixed(1)}  T = ${T.toFixed(1)} K`;
+    }
+
+    function desenareGrafice() {
+      graphPV.clearRect(0, 0, 300, 400);
+      graphPV.strokeRect(40, 10, 240, 360);
+
+      graphPV.fillStyle = "black";
+      graphPV.font = "16px Arial";
+      graphPV.fillText("p", 10, 25);
+      graphPV.fillText("V", 275, 390);
+
+      const xMax = Vmax;
+      const xMin = Vmin;
+      const yMax = T / Vmin;
+      const yMin = T / Vmax;
+
+      if (pointsPV.length > 1) {
+        graphPV.beginPath();
+        pointsPV.forEach((pt, i) => {
+          const x = 40 + (pt.V - xMin) / (xMax - xMin) * 240;
+          const y = 370 - (pt.p - yMin) / (yMax - yMin) * 340;
+          i === 0 ? graphPV.moveTo(x, y) : graphPV.lineTo(x, y);
+        });
+        graphPV.strokeStyle = "red";
+        graphPV.lineWidth = 2;
+        graphPV.stroke();
+      }
+    }
+
+    function animatieIzotermaCalda() {
+      V += 1;
+      if (V > Vmax) {
+        clearInterval(anim);
+        return;
+      }
+      const p = T / V;
+      pointsPV.push({ V, p });
+      desenarePiston(V);
+      desenareGrafice();
+    }
+
+    document.getElementById('reset').onclick = () => {
+      V = Vmin;
+      pointsPV = [];
+      clearInterval(anim);
+      graphPV.clearRect(0, 0, 300, 400);
+      anim = setInterval(animatieIzotermaCalda, 100);
+    };
+
+    document.getElementById('reset').click();
+  </script>
+</body>
+</html>
