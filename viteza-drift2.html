@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulare viteza de drift și agitație termică</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            background-color: #f0f0f0;
+        }
+        #info {
+            font-family: Arial, sans-serif;
+            margin-top: 10px;
+            text-align: center;
+        }
+        #controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="info">
+        <strong style="color: blue;">●</strong> Particule (electroni) – agitație termică<br>
+        <strong style="color: red;">→</strong> Câmp electric în zona de jos (drift evident)
+    </div>
+
+    <div id="controls">
+        <button onclick="increaseThermal()">Crește Agitația Termică</button>
+        <button onclick="decreaseThermal()">Scade Agitația Termică</button>
+        <button onclick="increaseDrift()">Crește Viteza de Drift</button>
+        <button onclick="decreaseDrift()">Scade Viteza de Drift</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+        const numParticles = 200;
+        const midline = canvas.height / 2;
+
+        let thermalFactor = 1;
+        let driftSpeed = 1.0;
+
+        function createParticles() {
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * thermalFactor,
+                    vy: (Math.random() - 0.5) * thermalFactor
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.moveTo(0, midline);
+            ctx.lineTo(canvas.width, midline);
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+
+            for (let i = 50; i < canvas.width; i += 100) {
+                ctx.beginPath();
+                ctx.moveTo(i, midline + 50);
+                ctx.lineTo(i + 30, midline + 50);
+                ctx.strokeStyle = 'red';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(i + 30, midline + 45);
+                ctx.lineTo(i + 40, midline + 50);
+                ctx.lineTo(i + 30, midline + 55);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+            }
+
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.fillStyle = 'blue';
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.y > midline) {
+                    p.x += driftSpeed;
+                }
+
+                if (p.x > canvas.width) p.x = 0;
+                if (p.x < 0) p.x = canvas.width;
+                if (p.y > canvas.height) p.y = midline + 1;
+                if (p.y < 0) p.y = midline - 1;
+            });
+
+            requestAnimationFrame(drawParticles);
+        }
+
+        function updateVelocities() {
+            particles.forEach(p => {
+                p.vx = (Math.random() - 0.5) * thermalFactor;
+                p.vy = (Math.random() - 0.5) * thermalFactor;
+            });
+        }
+
+        function increaseThermal() {
+            thermalFactor += 0.5;
+            updateVelocities();
+        }
+
+        function decreaseThermal() {
+            thermalFactor = Math.max(0.5, thermalFactor - 0.5);
+            updateVelocities();
+        }
+
+        function increaseDrift() {
+            driftSpeed += 0.5;
+        }
+
+        function decreaseDrift() {
+            driftSpeed = Math.max(0, driftSpeed - 0.5);
+        }
+
+        createParticles();
+        drawParticles();
+    </script>
+</body>
+</html>
