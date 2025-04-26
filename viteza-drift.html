@@ -17,8 +17,9 @@
 <body>
     <canvas id="canvas" width="800" height="300"></canvas>
     <div id="info">
-        <strong style="color: blue;">●</strong> Viteza termică (agitație aleatorie rapidă)<br>
-        <strong style="color: red;">→</strong> Viteza de drift (deplasare lentă spre dreapta)
+        <strong style="color: blue;">●</strong> Agitație termică (aleatorie, rapidă)<br>
+        <strong style="color: red;">→</strong> Viteza de drift (deplasare lentă spre dreapta)<br><br>
+        <em>Observație:</em> Particulele au o tendință clară spre dreapta, în ciuda agitației rapide.
     </div>
 
     <script>
@@ -26,14 +27,15 @@
         const ctx = canvas.getContext('2d');
         const particles = [];
         const numParticles = 200;
+        let arrowX = 10;
 
         function createParticles() {
             for (let i = 0; i < numParticles; i++) {
                 particles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2
                 });
             }
         }
@@ -44,21 +46,37 @@
             particles.forEach(p => {
                 ctx.beginPath();
                 ctx.fillStyle = 'blue';
-                ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Viteza drift (mică deplasare spre dreapta)
-                p.x += 0.1;
-
-                // Agitație termică (mișcare rapidă, aleatorie)
+                p.x += 0.5;
                 p.x += p.vx;
                 p.y += p.vy;
 
-                // Reflexie margini
+                if (p.y > canvas.height || p.y < 0) p.vy = -p.vy;
                 if (p.x > canvas.width) p.x = 0;
                 if (p.x < 0) p.x = canvas.width;
-                if (p.y > canvas.height || p.y < 0) p.vy = -p.vy;
             });
+
+            // Linie roșie indicând curgerea spre dreapta
+            ctx.beginPath();
+            ctx.strokeStyle = 'red';
+            ctx.moveTo(10, canvas.height - 10);
+            ctx.lineTo(canvas.width - 10, canvas.height - 10);
+            ctx.stroke();
+
+            // Săgeată animată
+            ctx.beginPath();
+            ctx.strokeStyle = 'red';
+            ctx.fillStyle = 'red';
+            ctx.moveTo(arrowX, canvas.height - 15);
+            ctx.lineTo(arrowX + 10, canvas.height - 10);
+            ctx.lineTo(arrowX, canvas.height - 5);
+            ctx.closePath();
+            ctx.fill();
+
+            arrowX += 2;
+            if (arrowX > canvas.width) arrowX = 0;
 
             requestAnimationFrame(drawParticles);
         }
