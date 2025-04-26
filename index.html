@@ -12,6 +12,27 @@
     }
     h1 {
       color: #333;
+      margin-bottom: 30px;
+    }
+    #buttons {
+      margin-bottom: 30px;
+    }
+    button {
+      margin: 10px;
+      padding: 15px 30px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      background-color: #0077cc;
+      color: white;
+      border-radius: 8px;
+    }
+    button:hover {
+      background-color: #003366;
+    }
+    .category {
+      display: none;
+      margin-top: 20px;
     }
     ul {
       list-style: none;
@@ -31,24 +52,45 @@
   </style>
 </head>
 <body>
-  <h1>Simulări de Fizică</h1>
-  <ul>
-    <li><strong>Termodinamică:</strong></li>
-    <li><a href="Ciclul carnot - Faza 1.html">Ciclul Carnot – Faza 1</a></li>
-    <li><a href="Ciclul carnot - Faza 2.html">Ciclul Carnot – Faza 2</a></li>
-    <li><a href="Ciclul carnot - Faza 3.html">Ciclul Carnot – Faza 3</a></li>
-    <li><a href="Ciclul carnot - Faza 4.html">Ciclul Carnot – Faza 4</a></li>
-    <li><a href="Entropie.html">Creșterea entropiei</a></li>
-    <li><a href="Principiul I.html">Principiul I</a></li>
-    <li><a href="Principiul II.html">Principiul II</a></li>
-    <li><a href="Problema entropie.html">Problemă: Entropie</a></li>
-    <li><a href="Transfer de Căldură.html">Transfer de căldură</a></li>
-    <li><a href="transformare_adiabatica_balon_mobil_v2.html">Transformare adiabatică</a></li>
 
-    <br>
-    <li><strong>Electricitate:</strong></li>
-    <li><a href="viteza-drift.html">Viteza de drift și agitația termică – I</a></li>
-    <li><a href="viteza-drift2.html">Viteza de drift și agitația termică – II</a></li>
-  </ul>
+  <h1>Simulări de Fizică</h1>
+
+  <div id="buttons">
+    <button onclick="showCategory('termodinamica')">Termodinamică</button>
+    <button onclick="showCategory('electricitate')">Electricitate</button>
+  </div>
+
+  <div id="termodinamica" class="category">
+    <h2>Termodinamică</h2>
+    <ul>
+      <li><a href="Ciclul carnot - Faza 1.html">Ciclul Carnot – Faza 1</a></li>
+      <li><a href="Ciclul carnot - Faza 2.html">Ciclul Carnot – Faza 2</a></li>
+      <li><a href="Ciclul carnot - Faza 3.html">Ciclul Carnot – Faza 3</a></li>
+      <li><a href="Ciclul carnot - Faza 4.html">Ciclul Carnot – Faza 4</a></li>
+      <li><a href="Entropie.html">Creșterea entropiei</a></li>
+      <li><a href="Principiul I.html">Principiul I</a></li>
+      <li><a href="Principiul II.html">Principiul II</a></li>
+      <li><a href="Problema entropie.html">Problemă: Entropie</a></li>
+      <li><a href="Transfer de Căldură.html">Transfer de căldură</a></li>
+      <li><a href="transformare_adiabatica_balon_mobil_v2.html">Transformare adiabatică</a></li>
+    </ul>
+  </div>
+
+  <div id="electricitate" class="category">
+    <h2>Electricitate</h2>
+    <ul>
+      <li><a href="viteza-drift.html">Viteza de drift și agitația termică – I</a></li>
+      <li><a href="viteza-drift2.html">Viteza de drift și agitația termică – II</a></li>
+    </ul>
+  </div>
+
+  <script>
+    function showCategory(category) {
+      document.getElementById('termodinamica').style.display = 'none';
+      document.getElementById('electricitate').style.display = 'none';
+      document.getElementById(category).style.display = 'block';
+    }
+  </script>
+
 </body>
 </html>
