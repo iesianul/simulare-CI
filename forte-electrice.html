@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Adunare Vectorială Forțe Electrice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            text-align: center;
+            padding: 20px;
+        }
+        canvas {
+            background: #ffffff;
+            border: 1px solid black;
+            margin-bottom: 20px;
+        }
+        #formule {
+            font-size: 18px;
+            max-width: 800px;
+            margin: auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: none; /* ascuns inițial până se încarcă formulele */
+        }
+    </style>
+</head>
+<body>
+
+<h1>Vectorii Forțelor Electrice asupra lui \( q_3 \)</h1>
+
+<canvas id="canvas" width="800" height="300"></canvas>
+
+<div id="formule">
+    <p><strong>Formule:</strong></p>
+
+    $$F_{1,on,3} = \frac{1}{4\pi\varepsilon_0} \frac{|q_1 q_3|}{r_{13}^2} \quad \Rightarrow \quad F_{1,on,3} = 112\,\mu N \quad \text{(spre stânga)}$$
+
+    $$F_{2,on,3} = \frac{1}{4\pi\varepsilon_0} \frac{|q_2 q_3|}{r_{23}^2} \quad \Rightarrow \quad F_{2,on,3} = 84\,\mu N \quad \text{(spre dreapta)}$$
+
+    $$F_{\text{net}} = F_{1,on,3} + F_{2,on,3} = (-112 + 84)\,\mu N = -28\,\mu N \quad \text{(rezultantă spre stânga)}$$
+</div>
+
+<!-- Configurare MathJax -->
+<script>
+window.MathJax = {
+  tex: {inlineMath: [['$', '$'], ['\\(', '\\)']]},
+  svg: {fontCache: 'global'},
+  startup: {
+    ready: () => {
+      MathJax.startup.defaultReady();
+      document.getElementById('formule').style.display = 'block';
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<script>
+// Canvas desen
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Pozițiile sarcinilor – mutate spre dreapta
+const origin = {x: 300, y: 150}; // q3 (mutat de la 100 la 300)
+const q1 = {x: 460, y: 150};     // q1 la +2 cm
+const q2 = {x: 620, y: 150};     // q2 la +4 cm
+
+let step = 0;
+
+function drawSetup() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Axa x
+    ctx.beginPath();
+    ctx.moveTo(50, 150);
+    ctx.lineTo(750, 150);
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Sarcini
+    drawCharge(origin.x, origin.y, "q₃", "black");
+    drawCharge(q1.x, q1.y, "q₁", "blue");
+    drawCharge(q2.x, q2.y, "q₂", "red");
+}
+
+function drawCharge(x, y, label, color) {
+    ctx.beginPath();
+    ctx.arc(x, y, 15, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.fillStyle = "white";
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, x, y);
+}
+
+function drawVector(x, y, length, direction, color, label) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + length * direction, y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Corectarea săgeții
+    const tipX = x + length * direction;
+    const offset = 10;
+
+    ctx.beginPath();
+    if (direction > 0) {
+        ctx.moveTo(tipX - offset, y - 5);
+        ctx.lineTo(tipX, y);
+        ctx.lineTo(tipX - offset, y + 5);
+    } else {
+        ctx.moveTo(tipX + offset, y - 5);
+        ctx.lineTo(tipX, y);
+        ctx.lineTo(tipX + offset, y + 5);
+    }
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Etichetă
+    ctx.fillStyle = color;
+    ctx.font = "16px Arial";
+    ctx.fillText(label, x + (length * direction) / 2, y - 15);
+}
+
+function animate() {
+    drawSetup();
+
+    if (step >= 1) {
+        drawVector(origin.x, origin.y, 112, -1, "blue", "F₁");
+    }
+    if (step >= 2) {
+        drawVector(origin.x, origin.y, 84, 1, "red", "F₂");
+    }
+    if (step >= 3) {
+        drawVector(origin.x, origin.y, 28, -1, "green", "F₃");
+    }
+
+    step++;
+    if (step <= 3) {
+        setTimeout(animate, 2500); // 2.5 secunde între pași
+    }
+}
+
+animate();
+</script>
+
+</body>
+</html>
