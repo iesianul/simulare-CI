@@ -153,7 +153,7 @@ function animate() {
 }
 
 function moveQ3() {
-    if (moving && origin.x > 30) { // Oprește dacă a ajuns la margine
+    if (moving && origin.x > 10) { // Oprește dacă a ajuns la margine
         origin.x -= 0.5;
         drawSetup();
         requestAnimationFrame(moveQ3);
