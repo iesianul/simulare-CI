@@ -23,7 +23,7 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            display: none; /* ascuns inițial până se încarcă formulele */
+            display: none;
         }
     </style>
 </head>
@@ -64,11 +64,12 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 // Pozițiile sarcinilor – mutate spre dreapta
-const origin = {x: 300, y: 150}; // q3 (mutat de la 100 la 300)
-const q1 = {x: 460, y: 150};     // q1 la +2 cm
-const q2 = {x: 620, y: 150};     // q2 la +4 cm
+let origin = {x: 300, y: 150}; // q3
+const q1 = {x: 460, y: 150};   // q1
+const q2 = {x: 620, y: 150};   // q2
 
 let step = 0;
+let moving = false;
 
 function drawSetup() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -85,6 +86,17 @@ function drawSetup() {
     drawCharge(origin.x, origin.y, "q₃", "black");
     drawCharge(q1.x, q1.y, "q₁", "blue");
     drawCharge(q2.x, q2.y, "q₂", "red");
+
+    // Vectorii
+    if (step >= 1) {
+        drawVector(origin.x, origin.y, 112, -1, "blue", "F₁");
+    }
+    if (step >= 2) {
+        drawVector(origin.x, origin.y, 84, 1, "red", "F₂");
+    }
+    if (step >= 3) {
+        drawVector(origin.x, origin.y, 28, -1, "green", "F₃");
+    }
 }
 
 function drawCharge(x, y, label, color) {
@@ -107,7 +119,6 @@ function drawVector(x, y, length, direction, color, label) {
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Corectarea săgeții
     const tipX = x + length * direction;
     const offset = 10;
 
@@ -124,7 +135,6 @@ function drawVector(x, y, length, direction, color, label) {
     ctx.fillStyle = color;
     ctx.fill();
 
-    // Etichetă
     ctx.fillStyle = color;
     ctx.font = "16px Arial";
     ctx.fillText(label, x + (length * direction) / 2, y - 15);
@@ -133,19 +143,20 @@ function drawVector(x, y, length, direction, color, label) {
 function animate() {
     drawSetup();
 
-    if (step >= 1) {
-        drawVector(origin.x, origin.y, 112, -1, "blue", "F₁");
-    }
-    if (step >= 2) {
-        drawVector(origin.x, origin.y, 84, 1, "red", "F₂");
-    }
-    if (step >= 3) {
-        drawVector(origin.x, origin.y, 28, -1, "green", "F₃");
-    }
-
     step++;
     if (step <= 3) {
         setTimeout(animate, 2500); // 2.5 secunde între pași
+    } else {
+        moving = true; // începem să mișcăm q3 după vectori
+        requestAnimationFrame(moveQ3);
+    }
+}
+
+function moveQ3() {
+    if (moving && origin.x > 50) { // Oprește dacă a ajuns la margine
+        origin.x -= 0.5;
+        drawSetup();
+        requestAnimationFrame(moveQ3);
     }
 }
 
